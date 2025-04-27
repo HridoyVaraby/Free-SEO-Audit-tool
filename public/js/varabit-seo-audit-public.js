@@ -46,7 +46,8 @@
                     $loading.hide();
                     
                     if (response.success) {
-                        displayResults(response.data);
+                        // Pass websiteUrl to displayResults
+                        displayResults(response.data, websiteUrl);
                     } else {
                         displayError(response.data.message);
                     }
@@ -61,7 +62,8 @@
         /**
          * Display the SEO audit results.
          */
-        function displayResults(data) {
+        // Accept websiteUrl as a parameter
+        function displayResults(data, websiteUrl) {
             // Display overall score
             $('.audit-score').html('<span class="score-value">' + data.score + '</span>');
             
@@ -74,7 +76,7 @@
             } else if (data.score >= 50) {
                 scoreClass = 'average';
             }
-            $('.audit-score').addClass('score-' + scoreClass);
+            $('.audit-score').removeClass('score-poor score-average score-good score-excellent').addClass('score-' + scoreClass);
             
             // Set summary text
             let summaryText = 'Your website needs significant improvements.';
@@ -96,8 +98,8 @@
             // Display Headings results
             displayHeadingsResults(data.headings);
             
-            // Display Images results
-            displayImagesResults(data.images);
+            // Display Images results - pass websiteUrl
+            displayImagesResults(data.images, websiteUrl);
             
             // Display Mobile-Friendliness results
             displayMobileResults(data.mobile);
@@ -270,13 +272,14 @@
         /**
          * Display Images results.
          */
-        function displayImagesResults(images) {
+        // Accept websiteUrl as a parameter
+        function displayImagesResults(images, websiteUrl) {
             // Count images with and without alt text
             const totalImages = images.length;
             let imagesWithAlt = 0;
             
             for (const image of images) {
-                if (image.has_alt) {
+                if (image.has_alt && image.alt && image.alt.trim() !== '') {
                     imagesWithAlt++;
                 }
             }
@@ -295,9 +298,25 @@
                 html += '<tr><th>Image</th><th>Alt Text</th></tr>';
                 
                 for (const image of images) {
+                    let imageUrl = image.src;
+                    // Check if the image src is relative and construct absolute URL
+                    try {
+                        // Check if it's already an absolute URL
+                        new URL(imageUrl);
+                    } catch (_) {
+                        // If it's not absolute, try resolving it against the website URL
+                        try {
+                            imageUrl = new URL(imageUrl, websiteUrl).href;
+                        } catch (e) {
+                            console.error('Error constructing image URL:', e, 'Original src:', image.src, 'Base URL:', websiteUrl);
+                            // Keep original src if construction fails
+                        }
+                    }
+
                     html += '<tr>';
-                    html += '<td><img src="' + image.src + '" alt="" style="max-width: 100px; max-height: 60px;"></td>';
-                    html += '<td class="' + (image.has_alt ? 'has-alt' : 'no-alt') + '">' + (image.alt || 'No alt text') + '</td>';
+                    // Use the potentially updated imageUrl
+                    html += '<td><img src="' + imageUrl + '" alt="" style="max-width: 100px; max-height: 60px;" onerror="this.style.display=\'none\'; this.parentElement.innerHTML = \'Image not found\';"></td>';
+                    html += '<td class="' + (image.has_alt && image.alt && image.alt.trim() !== '' ? 'has-alt' : 'no-alt') + '">' + (image.alt && image.alt.trim() !== '' ? image.alt : 'No alt text') + '</td>';
                     html += '</tr>';
                 }
                 

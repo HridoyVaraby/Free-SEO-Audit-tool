@@ -11,7 +11,21 @@ class Varabit_SEO_Audit_API {
      *
      * @var string
      */
-    private $pagespeed_api_key = ''; // You should set this in the WordPress admin
+    private $pagespeed_api_key = '';
+
+    /**
+     * Initialize the API class and set the API key.
+     */
+    public function __construct() {
+        // Retrieve the API key from WordPress options
+        // Use the static method from the admin class to get the key
+        if (class_exists('Varabit_SEO_Audit_Admin')) {
+            $this->pagespeed_api_key = Varabit_SEO_Audit_Admin::get_pagespeed_api_key();
+        } else {
+            // Fallback or error handling if admin class isn't loaded somehow
+            $this->pagespeed_api_key = get_option('varabit_seo_audit_pagespeed_api_key', '');
+        }
+    }
 
     /**
      * Get PageSpeed Insights data for a URL.
