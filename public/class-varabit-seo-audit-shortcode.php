@@ -29,6 +29,9 @@ class Varabit_SEO_Audit_Shortcode {
             $atts,
             'varabit_seo_audit'
         );
+        
+        // Add newsletter shortcode from settings
+        $newsletter_shortcode = get_option('varabit_seo_audit_newsletter_shortcode', '');
 
         // Start output buffering
         ob_start();
@@ -96,6 +99,16 @@ class Varabit_SEO_Audit_Shortcode {
                         <h4>Errors & Warnings</h4>
                         <div class="section-content"></div>
                     </div>
+                </div>
+                
+                <div class="audit-newsletter">
+                    <h4>Stay Updated with SEO Tips</h4>
+                    <?php 
+                    $shortcode = get_option('varabit_seo_audit_newsletter_shortcode', '');
+                    if (!empty($shortcode)) {
+                        echo do_shortcode($shortcode);
+                    }
+                    ?>
                 </div>
                 
                 <div class="audit-actions">

@@ -39,6 +39,12 @@ class Varabit_SEO_Audit_Admin {
             'varabit_seo_audit_pagespeed_api_key',
             array('sanitize_callback' => 'sanitize_text_field')
         );
+        
+        register_setting(
+            'varabit_seo_audit_settings',
+            'varabit_seo_audit_newsletter_shortcode',
+            array('sanitize_callback' => 'sanitize_text_field')
+        );
     }
 
     /**
@@ -65,9 +71,29 @@ class Varabit_SEO_Audit_Admin {
                     </tr>
                 </table>
                 
+                <h3>Newsletter Form Settings</h3>
+                <p>Add your newsletter form shortcode below (e.g. [wpforms id="138"]). This will be displayed in the audit results.</p>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">Newsletter Form Shortcode</th>
+                        <td>
+                            <input type="text" name="varabit_seo_audit_newsletter_shortcode" value="<?php echo esc_attr(get_option('varabit_seo_audit_newsletter_shortcode')); ?>" class="regular-text">
+                        </td>
+                    </tr>
+                </table>
+                
                 <?php submit_button(); ?>
             </form>
-            
+            <?php
+            if (isset($_POST['varabit_seo_audit_newsletter_shortcode'])) {
+                $shortcode = trim($_POST['varabit_seo_audit_newsletter_shortcode']);
+                if (!empty($shortcode)) {
+                    update_option('varabit_seo_audit_newsletter_shortcode', sanitize_text_field($shortcode));
+                } else {
+                    delete_option('varabit_seo_audit_newsletter_shortcode');
+                }
+            }
+            ?>
             <div class="varabit-seo-audit-info">
                 <h3>How to Use the SEO Audit Tool</h3>
                 <p>Use the shortcode <code>[varabit_seo_audit]</code> to display the SEO Audit tool on any page or post.</p>
