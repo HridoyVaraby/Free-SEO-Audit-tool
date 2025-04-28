@@ -435,12 +435,62 @@
         }
 
         /**
-         * Generate PDF report.
+         * Generate PDF report using html2canvas and jsPDF.
          */
         function generatePDF() {
-            // This is a simplified version. In a real implementation, you would use a library like jsPDF
-            // or make an AJAX call to a server-side PDF generation function.
-            alert('PDF generation would be implemented here. This would typically use a library like jsPDF or a server-side PDF generation function.');
+            const { jsPDF } = window.jspdf;
+            const reportElement = $('.varabit-seo-audit-results')[0]; // Get the DOM element
+            const pdfFileName = 'seo-audit-report.pdf';
+
+            if (!reportElement) {
+                alert('Could not find the report element to generate PDF.');
+                return;
+            }
+
+            // Show a temporary loading message
+            const $downloadBtn = $('#download-pdf-btn');
+            const originalBtnText = $downloadBtn.text();
+            $downloadBtn.text('Generating PDF...').prop('disabled', true);
+
+            html2canvas(reportElement, {
+                scale: 2, // Increase scale for better resolution
+                useCORS: true, // Enable cross-origin images if any
+                logging: false // Disable html2canvas logging in console
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF({
+                    orientation: 'p', // portrait
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                const imgProps = pdf.getImageProperties(imgData);
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                let heightLeft = pdfHeight;
+                let position = 0;
+
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+                heightLeft -= pdf.internal.pageSize.getHeight();
+
+                while (heightLeft >= 0) {
+                    position = heightLeft - pdfHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+                    heightLeft -= pdf.internal.pageSize.getHeight();
+                }
+
+                pdf.save(pdfFileName);
+
+                // Restore button state
+                $downloadBtn.text(originalBtnText).prop('disabled', false);
+
+            }).catch(error => {
+                console.error('Error generating PDF:', error);
+                alert('An error occurred while generating the PDF. Please check the console for details.');
+                // Restore button state even on error
+                $downloadBtn.text(originalBtnText).prop('disabled', false);
+            });
         }
 
         /**
