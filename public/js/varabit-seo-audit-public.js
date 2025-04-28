@@ -455,7 +455,11 @@
             html2canvas(reportElement, {
                 scale: 2, // Increase scale for better resolution
                 useCORS: true, // Enable cross-origin images if any
-                logging: false // Disable html2canvas logging in console
+                logging: false, // Disable html2canvas logging in console
+                ignoreElements: (element) => {
+                    // Ignore the newsletter section and the actions section containing the download button
+                    return element.classList.contains('audit-newsletter') || element.classList.contains('audit-actions');
+                }
             }).then(canvas => {
                 const imgData = canvas.toDataURL('image/png');
                 const pdf = new jsPDF({
